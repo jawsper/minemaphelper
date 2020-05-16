@@ -17,10 +17,9 @@ class MinemapContainer extends Component {
         }
         return (
             <Minemap
-                user={this.props.authentication.get('user')}
+                user={this.props.user}
                 maps={this.props.maps}
                 markers={this.props.markers}
-                handleAuthRequest={this.props.handleAuthRequest}
                 handleSaveMap={this.props.handleSaveMap}
             />
         );
@@ -30,9 +29,9 @@ class MinemapContainer extends Component {
 function mapStateToProps(state) {
     const maps = state.getIn(['maps', 'maps']);
     const markers = state.getIn(['markers', 'markers']);
-    const authentication = state.get('authentication');
+    const user = state.getIn(['authentication', 'user']);
     const loaded = state.getIn(['maps', 'loaded']) && state.getIn(['markers', 'loaded']);
-    return { loaded, maps, markers, authentication };
+    return { loaded, maps, markers, user };
 }
 
 function mapDispatchToProps(dispatch) {
@@ -40,7 +39,6 @@ function mapDispatchToProps(dispatch) {
         handleSaveMap: (coords, map_id) => dispatch(saveMap(coords, map_id)),
         handleLoadMaps: () => dispatch(loadMaps()),
         handleLoadMarkers: () => dispatch(loadMarkers()),
-        handleAuthRequest: () => dispatch(authRequest()),
     }
 }
 
