@@ -2,9 +2,6 @@ import React, { Component } from 'react';
 import { Form, Button, Col } from 'react-bootstrap';
 
 export default class MapIDPopupForm extends Component {
-    state = {
-        map_id: this.props.map_id === null ? '' : this.props.map_id
-    }
 
     constructor(props) {
         super(props);
@@ -15,19 +12,17 @@ export default class MapIDPopupForm extends Component {
         this.inputField.current.focus();
     }
 
+    /**
+     * Called on form submit
+     */
     handleSubmit = (e) => {
         e.preventDefault();
 
-        this.props.handleSave(this.props.coords, this.state.map_id);
-    };
-
-    inputOnChange = (e) => {
-        this.setState({ map_id: e.target.value });
+        this.props.onSave(this.props.coords, e.currentTarget.map_id.value);
     };
 
     render() {
-        const { coords } = this.props;
-        const { map_id } = this.state;
+        const { coords, map_id } = this.props;
 
         const headerText = coords !== null && coords !== undefined
             ? `X: ${coords.x}, Z: ${coords.z}, zoom: ${coords.zoom}`
@@ -45,8 +40,7 @@ export default class MapIDPopupForm extends Component {
                                 <Form.Control
                                     ref={this.inputField}
                                     name="map_id"
-                                    onChange={this.inputOnChange}
-                                    value={map_id} />
+                                    defaultValue={map_id === undefined ? '' : map_id} />
                             </Col>
                         </Form.Group>
                     </Form.Row>

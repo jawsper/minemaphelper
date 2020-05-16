@@ -13,7 +13,7 @@ export default class MapIDPopup extends Component {
             <MapIDPopupForm
                 coords={this.props.coords}
                 map_id={this.props.map_id}
-                handleSave={this.props.onPopupSave} />
+                onSave={this.props.onSave} />
         </Popup>;
     }
 }
