@@ -10,6 +10,10 @@ class World(models.Model):
         settings.AUTH_USER_MODEL,
         related_name='worlds',
     )
+    private = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'World "{self.name}"'
 
 
 class MinecraftMap(models.Model):

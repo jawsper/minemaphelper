@@ -13,10 +13,12 @@ class WorldViewSet(viewsets.ModelViewSet):
     """
 
     def get_queryset(self):
+        if self.request.user.is_anonymous:
+            return World.objects.filter(private=False)
         return self.request.user.worlds.all()
     serializer_class = WorldSerializer
     pagination_class = None
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class MapViewSet(viewsets.ModelViewSet):
