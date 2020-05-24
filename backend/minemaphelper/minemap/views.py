@@ -10,6 +10,8 @@ from minemaphelper.minemap.models import World, MinecraftMap, MapMarker
 
 
 def user_allowed_world(world, user):
+    if user.is_superuser:
+        return True
     if world.private and user.is_anonymous or world.users.filter(pk=user.pk).count() == 0:
         return False
     return True
@@ -57,7 +59,10 @@ class WorldViewSet(viewsets.ModelViewSet):
     def filter_queryset(self, queryset):
         if self.request.user.is_anonymous:
             return queryset.filter(private=False)
-        return queryset.filter(Q(users__in=[self.request.user]) | Q(private=False))
+        elif self.request.user.is_superuser:
+            return queryset
+        else:
+            return queryset.filter(Q(users__in=[self.request.user]) | Q(private=False))
 
     serializer_class = WorldSerializer
     pagination_class = None
