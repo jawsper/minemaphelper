@@ -1,31 +1,30 @@
-import { applyMiddleware, compose, createStore } from 'redux';
+import { applyMiddleware, createStore } from 'redux';
 import thunkMiddleware from 'redux-thunk';
 import { createLogger } from 'redux-logger';
 import { composeWithDevTools } from 'redux-devtools-extension';
-import axiosMiddleware from 'redux-axios-middleware';
 
-import rootReducer from './reducers';
-import Axios from 'axios';
+import createRootReducer from './reducers';
+import getAxiosMiddleware from './axiosMiddleware';
 
 const loggerMiddleware = createLogger();
-const client = Axios.create({
-    baseURL: '/api/',
-    xsrfCookieName: 'csrftoken',
-    xsrfHeaderName: 'X-CSRFToken',
-});
 
-export default function configureStore(preloadedState) {
+
+export default function configureStore(preloadedState = undefined) {
     const middlewares = [
-        thunkMiddleware, 
+        thunkMiddleware,
         loggerMiddleware,
-        axiosMiddleware(client),
+        getAxiosMiddleware(),
     ]
     const middlewareEnhancer = applyMiddleware(...middlewares)
 
     const enhancers = [middlewareEnhancer]
     const composedEnhancers = composeWithDevTools(...enhancers)
 
-    const store = createStore(rootReducer, preloadedState, composedEnhancers)
+    const store = createStore(
+        createRootReducer(),
+        preloadedState,
+        composedEnhancers
+    )
 
-    return store
+    return store;
 }
