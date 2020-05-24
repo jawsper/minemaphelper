@@ -1,45 +1,73 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux';
+import Cookies from 'js-cookie';
+import Immutable from 'immutable';
 
-import { loadMaps, loadMarkers, authRequest, saveMap } from '../actions';
+import actions from '../actions';
 
 import Minemap from '../components/Minemap';
+import Loading from '../components/Loading';
+import { currentWorldSelector, mapsSelector, markersSelector, mapsLoadedSelector, markersLoadedSelector } from '../selectors';
+
 
 class MinemapContainer extends Component {
     componentDidMount() {
-        this.props.handleLoadMaps();
-        this.props.handleLoadMarkers();
+        this._loadMapsAndMarkers();
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if(prevProps.currentWorld.get('pk') !== this.props.currentWorld.get('pk')) {
+            this._loadMapsAndMarkers();
+        }
+    }
+
+    _loadMapsAndMarkers() {
+        const { currentWorld, handleLoadMaps, handleLoadMarkers } = this.props;
+        handleLoadMaps(currentWorld.get('pk'));
+        handleLoadMarkers(currentWorld.get('pk'));
     }
 
     render() {
-        if (!this.props.loaded) {
-            return 'Loading...';
+        // TODO: should move this out of render ideally
+        let viewport = null;
+        try {
+            viewport = JSON.parse(Cookies.get('viewport'));
+            if (!viewport.center || viewport.center.length !== 2) {
+                viewport = null;
+            }
+        }
+        catch {
+            viewport = null;
         }
         return (
-            <Minemap
-                user={this.props.user}
-                maps={this.props.maps}
-                markers={this.props.markers}
-                handleSaveMap={this.props.handleSaveMap}
-            />
+            <Loading until={this.props.loaded} message="Loading maps">
+                <Minemap
+                    user={this.props.user}
+                    maps={this.props.maps}
+                    markers={this.props.markers}
+                    handleSaveMap={this.props.handleSaveMap}
+                    handleSavePosition={this.props.handleSavePosition}
+                    viewport={viewport}
+                />
+            </Loading>
         );
     }
 }
+const mapStateToProps = state => ({
+    currentWorld: currentWorldSelector(state),
+    maps: mapsSelector(state),
+    markers: markersSelector(state),
+    user: state.getIn(['authentication', 'user']),
+    loaded: mapsLoadedSelector(state) && markersLoadedSelector(state),
+});
 
-function mapStateToProps(state) {
-    const maps = state.getIn(['maps', 'maps']);
-    const markers = state.getIn(['markers', 'markers']);
-    const user = state.getIn(['authentication', 'user']);
-    const loaded = state.getIn(['maps', 'loaded']) && state.getIn(['markers', 'loaded']);
-    return { loaded, maps, markers, user };
-}
-
-function mapDispatchToProps(dispatch) {
-    return {
-        handleSaveMap: (coords, map_id) => dispatch(saveMap(coords, map_id)),
-        handleLoadMaps: () => dispatch(loadMaps()),
-        handleLoadMarkers: () => dispatch(loadMarkers()),
+const mapDispatchToProps = (dispatch) => ({
+    handleSaveMap: (coords, map_id) => dispatch(actions.maps.saveMap(coords, map_id)),
+    handleLoadMaps: (world) => dispatch(actions.maps.loadMaps(world)),
+    handleLoadMarkers: (world) => dispatch(actions.markers.loadMarkers(world)),
+    handleSavePosition: (viewport) => {
+        Cookies.set('viewport', JSON.stringify(viewport), { expires: 365, sameSite: 'strict' });
     }
-}
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(MinemapContainer)
