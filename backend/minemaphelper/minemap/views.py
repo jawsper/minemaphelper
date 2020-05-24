@@ -115,36 +115,6 @@ class MapViewSet(HasWorldMixin, viewsets.ModelViewSet):
 
         return obj
 
-    @action(
-        detail=False,
-        url_path='by_coords/(?P<x>-?[0-9]+)/(?P<z>-?[0-9]+)',
-        methods=['get', 'put'])
-    def by_coords(self, request, world_pk=None, x=None, z=None):
-        world = World.objects.get(pk=world_pk)
-        if request.method == 'GET':
-            try:
-                instance = MinecraftMap.objects.get(world=world, x=x, z=z)
-            except MinecraftMap.DoesNotExist:
-                raise Http404
-            serializer = self.get_serializer(instance)
-            return Response(serializer.data)
-        elif request.method == 'PUT':
-            try:
-                instance = MinecraftMap.objects.get(world=world, x=x, z=z)
-            except MinecraftMap.DoesNotExist:
-                instance = MinecraftMap(world=world, x=x, z=z, zoom=0)
-
-            map = request.data.get('map')
-            if map is not None:
-                instance.map = request.data.get('map')
-                instance.save()
-            elif instance.id is not None:
-                instance.delete()
-
-            serializer = self.get_serializer(instance)
-
-            return Response(serializer.data)
-
 
 class MarkerViewSet(viewsets.ModelViewSet):
     """
