@@ -9,6 +9,7 @@ class World(models.Model):
     users = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         related_name='worlds',
+        blank=True,
     )
     private = models.BooleanField(default=True)
 
