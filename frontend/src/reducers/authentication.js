@@ -7,7 +7,7 @@ import {
     AUTH_LOGIN_FAIL,
     AUTH_LOGIN_SUCCESS,
     AUTH_LOGOUT_SUCCESS,
-} from '../actions';
+} from '../actions/authentication';
 
 const initialState = Immutable.fromJS({
     user: null,
@@ -21,14 +21,16 @@ export default function maps(state = initialState, action) {
         case REQUEST_AUTH:
             return state.setIn(['showDialog'], true);
         case REQUEST_AUTH_CLEAR:
-            return state.setIn(['showDialog'], false);
+            return state
+                .set('errors', Immutable.fromJS({}))
+                .set('showDialog', false)
 
         /* Get user data */
         case AUTH_CHECK_LOGIN_SUCCESS:
             state = state.setIn(['user'], Immutable.fromJS(action.payload.data));
             return state;
         case AUTH_CHECK_LOGIN_FAIL:
-            state = state.setIn(['user'], null);
+            state = state.setIn(['user'], Immutable.fromJS({ anonymous: true }));
             return state;
 
         /* Login request */
@@ -42,7 +44,7 @@ export default function maps(state = initialState, action) {
 
         /* Logout completed */
         case AUTH_LOGOUT_SUCCESS:
-            state = state.setIn(['user'], null);
+            state = state.setIn(['user'], Immutable.fromJS({ anonymous: true }));
             return state;
 
         default:
