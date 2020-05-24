@@ -1,7 +1,15 @@
 import React, { Component } from 'react';
 import { Form, Button, Col } from 'react-bootstrap';
+import PropTypes from 'prop-types';
 
+/**
+ * Form to input Map ID
+ */
 export default class MapIDPopupForm extends Component {
+    static propTypes = {
+        map_id: PropTypes.number,
+        onSave: PropTypes.func.isRequired,
+    };
 
     constructor(props) {
         super(props);
