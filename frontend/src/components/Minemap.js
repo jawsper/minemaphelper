@@ -1,41 +1,18 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import ImmutablePropTypes from 'react-immutable-proptypes';
 
-import { Map, withLeaflet, GridLayer } from 'react-leaflet';
-import L from 'leaflet';
-
+import { Map } from 'react-leaflet';
 
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.webpack.css';
 import 'leaflet-defaulticon-compatibility';
 
-import minecraftGridLayer from './MinecraftGridLayer';
 import { leaflet_coordinate_to_minecraft_map_coordinate } from '../util';
 import MapMarkers from './MapMarkers';
 import MapIDPopup from './MapIDPopup';
-
-const MineGridLayer = withLeaflet(class MineGridLayer extends GridLayer {
-    createLeafletElement(props) {
-        return minecraftGridLayer(this.getOptions(props));
-    }
-
-    updateLeafletElement(fromProps, toProps) {
-        const { opacity, zIndex, maps } = toProps
-        if (opacity !== fromProps.opacity) {
-            this.leafletElement.setOpacity(opacity)
-        }
-        if (zIndex !== fromProps.zIndex) {
-            this.leafletElement.setZIndex(zIndex)
-        }
-        if (!maps.equals(fromProps.maps)) {
-            this.leafletElement.options.maps = maps;
-            this.leafletElement.redraw();
-        }
-    }
-});
-
-const MinecraftCRS = L.Util.extend({}, L.CRS.Simple, {
-    transformation: L.transformation(1, 64, 1, 64),
-});
+import MinecraftGridLayer from './MinecraftGridLayer';
+import MinecraftCRS from '../leaflet/MinecraftCRS';
 
 const DEFAULT_VIEWPORT = {
     center: { lng: 191.5, lat: -63.5 },
@@ -43,13 +20,28 @@ const DEFAULT_VIEWPORT = {
 }
 
 export default class Minemap extends Component {
+    static propTypes = {
+        maps: ImmutablePropTypes.map.isRequired,
+        markers: ImmutablePropTypes.map,
+        user: ImmutablePropTypes.map,
+        viewport: PropTypes.shape({
+            center: PropTypes.arrayOf(PropTypes.number),
+            zoom: PropTypes.number
+        }),
+
+        handleSaveMap: PropTypes.func.isRequired,
+        handleSavePosition: PropTypes.func.isRequired,
+    };
+
+
     state = {
         popup: {
             position: null,
             coords: null,
             map_id: null,
+            error: null,
         },
-        viewport: DEFAULT_VIEWPORT,
+        viewport: this.props.viewport || DEFAULT_VIEWPORT,
     }
 
     handleMapClick = (e) => {
@@ -58,7 +50,7 @@ export default class Minemap extends Component {
             return;
         }
 
-        if (this.props.user === null) {
+        if (this.props.user === null || this.props.user.get('anonymous') === true) {
             return;
         }
 
@@ -82,8 +74,16 @@ export default class Minemap extends Component {
             map_id = null;
         }
 
-        this.props.handleSaveMap(coords, map_id);
-        this.setState({ popup: { position: null } });
+        this.props.handleSaveMap(coords, map_id)
+            .then(result => {
+                // console.log('handleSaveMap.then', result);
+                if (result.error) {
+                    this.setState(state => {
+                        const popup = { ...state.popup, error: result.error.response.data.detail };
+                        return { ...state, popup };
+                    })
+                } else { this.setState({ popup: { position: null } }); }
+            });
     };
 
     handlePopupClosed = (e) => {
@@ -93,28 +93,32 @@ export default class Minemap extends Component {
 
     onViewportChanged = (viewport) => {
         // The viewport got changed by the user, keep track in state
-        this.setState({ viewport })
+        // this.setState({ viewport })
+        this.props.handleSavePosition(viewport);
     }
 
     render() {
         return (
-            <Map id="map"
-                crs={MinecraftCRS}
-                onClick={this.handleMapClick}
-                closePopupOnClick
+            <div id="map_container">
+                <Map id="map"
+                    crs={MinecraftCRS}
+                    onClick={this.handleMapClick}
+                    closePopupOnClick
 
-                viewport={this.state.viewport}
-                onViewportChanged={this.onViewportChanged}
-            >
-                <MineGridLayer
-                    maps={this.props.maps}
-                />
-                <MapMarkers markers={this.props.markers} />
-                <MapIDPopup
-                    {...this.state.popup}
-                    onSave={this.handlePopupSave}
-                    onClose={this.handlePopupClosed} />
-            </Map>
+                    viewport={this.state.viewport}
+                    onViewportChanged={this.onViewportChanged}
+                    minZoom={-3} // This is set explicitly to allow restoring zoom levels other than 0.
+                >
+                    <MinecraftGridLayer
+                        maps={this.props.maps}
+                    />
+                    <MapMarkers markers={this.props.markers} />
+                    <MapIDPopup
+                        {...this.state.popup}
+                        onSave={this.handlePopupSave}
+                        onClose={this.handlePopupClosed} />
+                </Map>
+            </div>
         );
     }
 }
