@@ -1,33 +1,29 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
 import AuthenticationDialog from '../components/AuthenticationDialog';
-import { authRequest, authLogin } from '../actions';
-import { clearAuthRequest } from '../actions/index';
+import actions from '../actions';
 
-class AuthenticationDialogContainer extends Component {
-    render() {
-        if (this.props.authentication.get('showDialog') === false) {
-            return null;
-        }
-        return <AuthenticationDialog
-            authentication={this.props.authentication}
-            doAuthenticate={this.props.sendAuthentication}
-            doClose={this.props.clearAuthRequest} />;
+
+const AuthenticationDialogContainer = (props) => {
+    if (props.authentication.get('showDialog') === false) {
+        return null;
     }
+    return <AuthenticationDialog
+        authentication={props.authentication}
+        onAuthenticate={props.sendAuthentication}
+        onClose={props.clearAuthRequest} />;
 }
 
-const mapStateToProps = (state) => {
-    const authentication = state.get('authentication');
-    return { authentication };
-};
+const mapStateToProps = (state) => ({
+    authentication: state.get('authentication'),
+});
 
 
-const mapDispatchToProps = (dispatch) => {
-    return {
-        handleAuthRequest: () => dispatch(authRequest()),
-        clearAuthRequest: () => dispatch(clearAuthRequest()),
-        sendAuthentication: (username, password) => dispatch(authLogin(username, password)),
-    }
-}
+const mapDispatchToProps = (dispatch) => ({
+    handleAuthRequest: () => dispatch(actions.authentication.authRequest()),
+    clearAuthRequest: () => dispatch(actions.authentication.clearAuthRequest()),
+    sendAuthentication: (username, password) => dispatch(actions.authentication.authLogin(username, password)),
+
+})
 
 export default connect(mapStateToProps, mapDispatchToProps)(AuthenticationDialogContainer);

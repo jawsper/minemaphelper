@@ -1,8 +1,20 @@
 import React, { Component } from 'react';
-
+import PropTypes from 'prop-types';
+import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Modal, Form, Button, Alert } from 'react-bootstrap';
 
 export default class AuthenticationDialog extends Component {
+    static propTypes = {
+        authentication: ImmutablePropTypes.contains({
+            user: PropTypes.any,
+            showDialog: PropTypes.bool,
+            errors: ImmutablePropTypes.map,
+        }).isRequired,
+
+        onAuthenticate: PropTypes.func.isRequired,
+        onClose: PropTypes.func.isRequired,
+    };
+
     state = {
         validated: false,
     }
@@ -16,33 +28,35 @@ export default class AuthenticationDialog extends Component {
         this.defaultInput.current.focus();
     }
 
-    handleSubmit = e => {
-        const form = e.currentTarget;
-        if (form.checkValidity() === false) {
-            e.preventDefault();
-            e.stopPropagation();
+    componentDidUpdate(prevProps) {
+        if (!this.props.authentication.equals(prevProps.authentication)) {
+            this.setState({ validated: false });
         }
+    }
+
+    handleSubmit = e => {
+        e.preventDefault();
+
+        const form = e.currentTarget;
 
         this.setState({ validated: true });
-        e.preventDefault();
-        console.log(e);
-        this.props.doAuthenticate(e.target['username'].value, e.target['password'].value)
+        if (form.checkValidity() === true) {
+            this.props.onAuthenticate(e.target['username'].value, e.target['password'].value);
+        }
     }
 
     render() {
         const errors = this.props.authentication.get('errors');
-        if (errors.size > 0) console.log('errors', errors);
 
         let error_box = null;
         if (errors.get('non_field_errors')) {
-            if (this.state.validated) this.setState({ validated: false })
             error_box = errors.get('non_field_errors').map(
                 (error, key) => <Alert key={key} variant="warning">{error}</Alert>
             )
         }
 
         return (
-            <Modal show={true} centered onHide={this.props.doClose}>
+            <Modal show={true} centered onHide={this.props.onClose}>
                 <Modal.Header closeButton>
                     <Modal.Title>Authentication required</Modal.Title>
                 </Modal.Header>
