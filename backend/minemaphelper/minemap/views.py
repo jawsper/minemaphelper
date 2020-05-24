@@ -28,8 +28,8 @@ class UserInWorld(permissions.BasePermission):
             else:
                 return user_allowed_world(world, request.user)
         permission = _has_object_permission(request, view, world)
-        print(
-            f'UserInWorld.has_object_permission({request.method}, {request.user}, {world}) => {permission}')
+        # print(
+        #     f'UserInWorld.has_object_permission({request.method}, {request.user}, {world}) => {permission}')
         return permission
 
 
@@ -44,8 +44,8 @@ class UserAllowedMap(permissions.BasePermission):
             else:
                 return user_allowed_world(view.world, request.user)
         permission = _has_permission(request, view)
-        print(
-            f'UserAllowedMap.has_permission({request.method}, {request.user}, {view.world}) => {permission}')
+        # print(
+        #     f'UserAllowedMap.has_permission({request.method}, {request.user}, {view.world}) => {permission}')
         return permission
 
 
@@ -55,6 +55,7 @@ class WorldViewSet(viewsets.ModelViewSet):
     """
 
     queryset = World.objects.all()
+    lookup_value_regex = r'[0-9]+'
 
     def filter_queryset(self, queryset):
         if self.request.user.is_anonymous:
@@ -97,9 +98,12 @@ class MapViewSet(HasWorldMixin, viewsets.ModelViewSet):
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly, UserAllowedMap]
 
-    # This is a very disgusting way to have two lookup vars but still effective
-    lookup_field = 'coordinates'
-    lookup_value_regex = '(?P<zoom>[0-9]+)/(?P<x>-?[0-9]+)/(?P<z>-?[0-9]+)'
+    def get_lookup_regex(self, lookup_prefix=''):
+        return '/'.join((
+            f'(?P<{lookup_prefix}x>-?[0-9]+)',
+            f'(?P<{lookup_prefix}z>-?[0-9]+)',
+            f'(?P<{lookup_prefix}zoom>[0-9]+)'
+        ))
 
     def get_object(self):
         """
@@ -110,8 +114,8 @@ class MapViewSet(HasWorldMixin, viewsets.ModelViewSet):
 
         filter_kwargs = {
             'zoom': self.kwargs['zoom'],
-            'x': self.kwargs['x'],
-            'z': self.kwargs['z']
+            'z': self.kwargs['z'],
+            'x': self.kwargs['x']
         }
         obj = get_object_or_404(queryset, **filter_kwargs)
 
