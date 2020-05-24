@@ -4,13 +4,17 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 module.exports = {
   devServer: {
+    historyApiFallback: true,
+    clientLogLevel: 'none',
     proxy: {
       '/api': 'http://localhost:8000',
     }
   },
-  // devtool: 'inline-source-map',
+  devtool: isProduction ? '' : 'inline-source-map',
   context: path.resolve(__dirname, 'src'),
   entry: [
     './index.js',
@@ -18,28 +22,24 @@ module.exports = {
   ],
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: '[name].[contenthash:8].js'
+    filename: '[name].[contenthash:8].js',
+    chunkFilename: 'vendor.[id].[contenthash:8].js',
   },
   module: {
     rules: [
       {
-        test: /\.m?js$/,
-        exclude: /(node_modules|bower_components)/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: [
-              '@babel/preset-react',
-              ['@babel/preset-env',
-                {
-                  modules: false
-                }]
-            ],
-            plugins: [
-              "@babel/plugin-proposal-class-properties",
-            ]
-          }
-        }
+        test: /\.(js|jsx)$/,
+        include: path.resolve(__dirname, 'src/'),
+        loader: require.resolve('babel-loader'),
+        options: {
+          presets: [
+            '@babel/preset-react',
+            ['@babel/preset-env', { modules: false }]
+          ],
+          plugins: [
+            "@babel/plugin-proposal-class-properties",
+          ]
+        },
       },
       {
         test: /\.(png|svg|jpg|gif)$/,
@@ -88,7 +88,16 @@ module.exports = {
       // Options similar to the same options in webpackOptions.output
       // both options are optional
       filename: '[name].[contenthash:8].css',
-      chunkFilename: '[id].css',
+      chunkFilename: 'vendor.[id].[contenthash:8].css',
     }),
-  ]
+  ],
+  resolve: {
+    extensions: ['.js', '.jsx']
+  },
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+      name: false,
+    }
+  }
 };
