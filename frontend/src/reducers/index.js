@@ -1,10 +1,8 @@
-import maps from './maps';
 import authentication from './authentication';
-import markers from './markers'
+import worlds from './worlds';
 import { combineReducers } from 'redux-immutable';
 
-export default combineReducers({
-    maps,
+export default () => combineReducers({
     authentication,
-    markers,
+    worlds,
 });
