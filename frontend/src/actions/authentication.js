@@ -1,13 +1,17 @@
-export const REQUEST_AUTH = 'REQUEST_AUTH';
-export const REQUEST_AUTH_CLEAR = 'REQUEST_AUTH_CLEAR';
-export function authRequest() {
+import { push } from 'connected-react-router/immutable';
+
+export const SHOW_AUTHENTICATION_DIALOG = 'SHOW_AUTHENTICATION_DIALOG';
+export const HIDE_AUTHENTICATION_DIALOG = 'HIDE_AUTHENTICATION_DIALOG';
+export function showAuthenticationDialog() {
     return (dispatch, _getState) => {
-        return dispatch({ type: REQUEST_AUTH });
+        dispatch({ type: SHOW_AUTHENTICATION_DIALOG });
+        dispatch(push('/auth/login'))
     }
 }
-export function clearAuthRequest() {
+export function hideAuthenticationDialog() {
     return (dispatch, _getState) => {
-        dispatch({ type: REQUEST_AUTH_CLEAR })
+        dispatch({ type: HIDE_AUTHENTICATION_DIALOG })
+        dispatch(push('/'))
     }
 }
 
@@ -59,6 +63,7 @@ export function authLogin(username, password) {
                 }
             }
         }).then(() => {
+            dispatch(push('/'));
             return dispatch(authCheckLogin());
         });
     }

@@ -1,7 +1,7 @@
 import Immutable from 'immutable';
 import {
-    REQUEST_AUTH,
-    REQUEST_AUTH_CLEAR,
+    SHOW_AUTHENTICATION_DIALOG,
+    HIDE_AUTHENTICATION_DIALOG,
     AUTH_CHECK_LOGIN_SUCCESS,
     AUTH_CHECK_LOGIN_FAIL,
     AUTH_LOGIN_FAIL,
@@ -18,9 +18,9 @@ const initialState = Immutable.fromJS({
 export default function maps(state = initialState, action) {
     switch (action.type) {
         /* Authentication */
-        case REQUEST_AUTH:
+        case SHOW_AUTHENTICATION_DIALOG:
             return state.setIn(['showDialog'], true);
-        case REQUEST_AUTH_CLEAR:
+        case HIDE_AUTHENTICATION_DIALOG:
             return state
                 .set('errors', Immutable.fromJS({}))
                 .set('showDialog', false)

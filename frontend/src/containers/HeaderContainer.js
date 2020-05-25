@@ -30,7 +30,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch) => ({
     handleCheckLoggedIn: () => dispatch(actions.authentication.authCheckLogin()),
-    handleLogin: () => dispatch(actions.authentication.authRequest()),
+    handleLogin: () => dispatch(actions.authentication.showAuthenticationDialog()),
     handleLogout: () => dispatch(actions.authentication.authLogout()),
 
     handleSearch: (query) => { console.log('search', query) },

@@ -2,6 +2,7 @@ import React from 'react';
 import HeaderContainer from './HeaderContainer';
 import MinemapContainer from './MinemapContainer';
 import { connect } from 'react-redux';
+import { Route } from 'react-router';
 import Immutable from 'immutable';
 
 import actions from '../actions';
@@ -25,7 +26,9 @@ class AppContainer extends React.Component {
         return (
             <div>
                 <HeaderContainer />
-                <AuthenticationDialogContainer />
+                <Route path="/auth/login">
+                    <AuthenticationDialogContainer />
+                </Route>
                 <Loading until={this.props.worlds_loaded === true} message="Loading worlds">
                     {this.props.current_world ? <MinemapContainer /> : null}
                 </Loading>

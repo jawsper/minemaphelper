@@ -5,13 +5,10 @@ import actions from '../actions';
 
 
 const AuthenticationDialogContainer = (props) => {
-    if (props.authentication.get('showDialog') === false) {
-        return null;
-    }
     return <AuthenticationDialog
         authentication={props.authentication}
         onAuthenticate={props.sendAuthentication}
-        onClose={props.clearAuthRequest} />;
+        onClose={props.hideAuthenticationDialog} />;
 }
 
 const mapStateToProps = (state) => ({
@@ -20,8 +17,7 @@ const mapStateToProps = (state) => ({
 
 
 const mapDispatchToProps = (dispatch) => ({
-    handleAuthRequest: () => dispatch(actions.authentication.authRequest()),
-    clearAuthRequest: () => dispatch(actions.authentication.clearAuthRequest()),
+    hideAuthenticationDialog: () => dispatch(actions.authentication.hideAuthenticationDialog()),
     sendAuthentication: (username, password) => dispatch(actions.authentication.authLogin(username, password)),
 
 })
