@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux';
-import Cookies from 'js-cookie';
-import Immutable from 'immutable';
+import { withCookies } from 'react-cookie';
 
 import actions from '../actions';
 
@@ -16,7 +15,7 @@ class MinemapContainer extends Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        if(prevProps.currentWorld.get('pk') !== this.props.currentWorld.get('pk')) {
+        if (prevProps.currentWorld.get('pk') !== this.props.currentWorld.get('pk')) {
             this._loadMapsAndMarkers();
         }
     }
@@ -27,18 +26,11 @@ class MinemapContainer extends Component {
         handleLoadMarkers(currentWorld.get('pk'));
     }
 
+    handleSavePosition = (viewport) => {
+        this.props.cookies.set('viewport', viewport, { maxAge: 365 * 86400, sameSite: 'strict' });
+    }
+
     render() {
-        // TODO: should move this out of render ideally
-        let viewport = null;
-        try {
-            viewport = JSON.parse(Cookies.get('viewport'));
-            if (!viewport.center || viewport.center.length !== 2) {
-                viewport = null;
-            }
-        }
-        catch {
-            viewport = null;
-        }
         return (
             <Loading until={this.props.loaded} message="Loading maps">
                 <Minemap
@@ -46,8 +38,8 @@ class MinemapContainer extends Component {
                     maps={this.props.maps}
                     markers={this.props.markers}
                     handleSaveMap={this.props.handleSaveMap}
-                    handleSavePosition={this.props.handleSavePosition}
-                    viewport={viewport}
+                    handleSavePosition={this.handleSavePosition}
+                    viewport={this.props.cookies.get('viewport')}
                 />
             </Loading>
         );
@@ -65,9 +57,6 @@ const mapDispatchToProps = (dispatch) => ({
     handleSaveMap: (coords, map_id) => dispatch(actions.maps.saveMap(coords, map_id)),
     handleLoadMaps: (world) => dispatch(actions.maps.loadMaps(world)),
     handleLoadMarkers: (world) => dispatch(actions.markers.loadMarkers(world)),
-    handleSavePosition: (viewport) => {
-        Cookies.set('viewport', JSON.stringify(viewport), { expires: 365, sameSite: 'strict' });
-    }
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(MinemapContainer)
+export default withCookies(connect(mapStateToProps, mapDispatchToProps)(MinemapContainer));
