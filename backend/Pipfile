@@ -7,7 +7,7 @@ verify_ssl = true
 autopep8 = "*"
 
 [packages]
-django = "==3.0.6"
+django = "~=3.0"
 djangorestframework = "==3.11.0"
 drf-nested-routers = "==0.91"
 django-rest-auth = "==0.9.5"
